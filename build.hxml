@@ -1,0 +1,4 @@
+-cp src
+-lib hxjavascript
+-js bin/test.js
+-main Test

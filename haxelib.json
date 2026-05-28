@@ -1,0 +1,11 @@
+{
+  "name": "hxjavascript",
+  "url": "https://github.com/Brenninho123/hxjavascript",
+  "license": "Apache",
+  "tags": ["javascript", "interop", "js", "browser", "web"],
+  "description": "Haxe x JavaScript interop library — eval, dynamic objects, Web Workers, CommonJS require and more.",
+  "version": "1.0.0",
+  "releasenote": "Initial release",
+  "contributors": ["Brenninho123"],
+  "dependencies": {}
+}

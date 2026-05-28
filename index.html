@@ -1,0 +1,1638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>hxjavascript — Haxe × JavaScript Interop Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #0d0e11;
+  --bg2:      #131519;
+  --bg3:      #1a1c22;
+  --border:   #252830;
+  --border2:  #2f3340;
+  --text:     #e2e4ec;
+  --muted:    #636878;
+  --muted2:   #4a5060;
+  --orange:   #f58a1f;
+  --orange2:  #e07010;
+  --orange3:  #ff9f3a;
+  --amber:    #ffb347;
+  --green:    #4caf80;
+  --blue:     #5b8dee;
+  --red:      #e05a5a;
+  --cyan:     #44c0c0;
+  --purple:   #9b7fe8;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-head: 'Syne', sans-serif;
+  --r:        6px;
+  --r2:       12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 15px;
+  line-height: 1.7;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--orange); color: #000; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+a { color: var(--orange); text-decoration: none; transition: color .2s; }
+a:hover { color: var(--orange3); }
+
+/* ─── NOISE OVERLAY ─── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: .5;
+}
+
+/* ─── NAV ─── */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  height: 60px;
+  background: rgba(13,14,17,.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-logo {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--text);
+  letter-spacing: -.5px;
+}
+.nav-logo span { color: var(--orange); }
+
+.nav-links {
+  display: flex;
+  gap: 32px;
+  list-style: none;
+  font-size: 13px;
+  color: var(--muted);
+}
+.nav-links a { color: var(--muted); }
+.nav-links a:hover { color: var(--text); }
+
+.nav-cta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 18px;
+  background: var(--orange);
+  color: #000;
+  border-radius: var(--r);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background .2s, transform .15s;
+}
+.nav-cta:hover { background: var(--orange3); color: #000; transform: translateY(-1px); }
+
+/* ─── HERO ─── */
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 80px 24px 60px;
+  overflow: hidden;
+}
+
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 80%);
+  opacity: .4;
+}
+
+.hero-glow {
+  position: absolute;
+  width: 700px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(245,138,31,.12) 0%, transparent 70%);
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 14px;
+  border: 1px solid var(--border2);
+  border-radius: 99px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 28px;
+  background: var(--bg2);
+  animation: fadeDown .6s ease both;
+}
+.hero-badge .dot {
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 2s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .5; transform: scale(.8); }
+}
+
+.hero-title {
+  font-family: var(--font-head);
+  font-size: clamp(52px, 9vw, 96px);
+  font-weight: 800;
+  line-height: 1.0;
+  letter-spacing: -3px;
+  color: var(--text);
+  animation: fadeDown .7s .1s ease both;
+}
+.hero-title .hx  { color: var(--orange); }
+.hero-title .sep { color: var(--muted2); font-weight: 400; }
+.hero-title .js  { color: var(--amber); }
+
+.hero-sub {
+  margin-top: 20px;
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 560px;
+  line-height: 1.6;
+  animation: fadeDown .7s .2s ease both;
+}
+.hero-sub strong { color: var(--text); font-weight: 400; }
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  margin-top: 40px;
+  flex-wrap: wrap;
+  justify-content: center;
+  animation: fadeDown .7s .3s ease both;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background: var(--orange);
+  color: #000;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--r);
+  transition: all .2s;
+  border: none;
+  cursor: pointer;
+}
+.btn-primary:hover { background: var(--orange3); color: #000; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(245,138,31,.3); }
+
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  transition: all .2s;
+  cursor: pointer;
+}
+.btn-ghost:hover { border-color: var(--orange); color: var(--orange); transform: translateY(-2px); }
+
+.hero-install {
+  margin-top: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 14px 20px;
+  font-size: 14px;
+  animation: fadeDown .7s .4s ease both;
+}
+.hero-install .prompt { color: var(--orange); user-select: none; }
+.hero-install .cmd    { color: var(--text); }
+.hero-install .copy-btn {
+  margin-left: auto;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: var(--r);
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all .2s;
+}
+.hero-install .copy-btn:hover { border-color: var(--orange); color: var(--orange); }
+
+.hero-stats {
+  display: flex;
+  gap: 40px;
+  margin-top: 60px;
+  animation: fadeDown .7s .5s ease both;
+}
+.hero-stats .stat { text-align: center; }
+.hero-stats .stat-n {
+  font-family: var(--font-head);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--orange);
+  display: block;
+}
+.hero-stats .stat-l {
+  font-size: 12px;
+  color: var(--muted);
+  display: block;
+}
+
+/* ─── SECTION WRAPPER ─── */
+section { padding: 100px 24px; max-width: 1100px; margin: 0 auto; }
+
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--orange);
+  margin-bottom: 16px;
+}
+.section-label::before {
+  content: '';
+  display: block;
+  width: 20px; height: 1px;
+  background: var(--orange);
+}
+
+.section-title {
+  font-family: var(--font-head);
+  font-size: clamp(28px, 4vw, 42px);
+  font-weight: 800;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+
+.section-desc {
+  color: var(--muted);
+  max-width: 520px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+/* ─── MODULES GRID ─── */
+#modules { border-top: 1px solid var(--border); }
+
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 1px;
+  margin-top: 60px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  background: var(--border);
+}
+
+.module-card {
+  background: var(--bg2);
+  padding: 28px 28px 24px;
+  transition: background .2s;
+  position: relative;
+  overflow: hidden;
+}
+.module-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--orange), transparent);
+  opacity: 0;
+  transition: opacity .3s;
+}
+.module-card:hover { background: var(--bg3); }
+.module-card:hover::before { opacity: 1; }
+
+.mod-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  margin-bottom: 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+}
+
+.mod-name {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.mod-pkg {
+  font-size: 11px;
+  color: var(--orange);
+  margin-bottom: 10px;
+}
+
+.mod-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.mod-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mod-tag {
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ─── CODE BLOCK ─── */
+.code-block {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.7;
+  position: relative;
+}
+
+.code-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.code-lang {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.copy-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: var(--r);
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  transition: all .2s;
+}
+.copy-btn:hover { border-color: var(--orange); color: var(--orange); }
+.copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+.code-body {
+  padding: 20px 20px;
+  overflow-x: auto;
+  tab-size: 4;
+}
+.code-body code {
+  font-family: var(--font-mono);
+  white-space: pre;
+}
+
+/* Syntax coloring */
+.k  { color: var(--purple); }
+.t  { color: var(--cyan); }
+.s  { color: var(--green); }
+.n  { color: var(--amber); }
+.cm { color: var(--muted2); font-style: italic; }
+.fn { color: var(--orange); }
+.p  { color: var(--muted); }
+.v  { color: var(--blue); }
+
+/* ─── TUTORIAL ─── */
+#tutorial { border-top: 1px solid var(--border); }
+
+.tutorial-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 0;
+  margin-top: 60px;
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  overflow: hidden;
+  min-height: 600px;
+}
+
+.tutorial-nav {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 8px 0;
+}
+
+.tut-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background .15s;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+.tut-step:hover { background: var(--bg3); }
+.tut-step.active {
+  background: var(--bg3);
+  border-left-color: var(--orange);
+}
+
+.tut-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  color: var(--muted);
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: all .2s;
+}
+.tut-step.active .tut-num {
+  background: var(--orange);
+  border-color: var(--orange);
+  color: #000;
+}
+.tut-step.done .tut-num {
+  background: var(--green);
+  border-color: var(--green);
+  color: #000;
+}
+
+.tut-info .tut-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+.tut-info .tut-sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.tut-step.active .tut-title { color: var(--orange); }
+
+.tutorial-content {
+  background: var(--bg);
+  padding: 40px 44px;
+  overflow-y: auto;
+}
+
+.tut-panel { display: none; }
+.tut-panel.active { display: block; animation: fadeIn .3s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+
+.tut-panel h2 {
+  font-family: var(--font-head);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.tut-panel p {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+.tut-panel p strong { color: var(--text); font-weight: 600; }
+
+.tut-note {
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(245,138,31,.06);
+  border: 1px solid rgba(245,138,31,.2);
+  border-radius: var(--r);
+  font-size: 13px;
+  color: var(--muted);
+  margin: 20px 0;
+}
+.tut-note .note-icon { color: var(--orange); flex-shrink: 0; }
+.tut-note strong { color: var(--orange); }
+
+.tut-note.info {
+  background: rgba(91,141,238,.06);
+  border-color: rgba(91,141,238,.2);
+}
+.tut-note.info .note-icon { color: var(--blue); }
+.tut-note.info strong { color: var(--blue); }
+
+.tut-note.success {
+  background: rgba(76,175,128,.06);
+  border-color: rgba(76,175,128,.2);
+}
+.tut-note.success .note-icon { color: var(--green); }
+.tut-note.success strong { color: var(--green); }
+
+.tut-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-next {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: var(--orange);
+  color: #000;
+  border: none;
+  border-radius: var(--r);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-next:hover { background: var(--orange3); transform: translateX(2px); }
+
+.btn-prev {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-prev:hover { color: var(--text); border-color: var(--border2); }
+
+.step-list {
+  list-style: none;
+  margin: 16px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.step-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.step-list li::before {
+  content: '→';
+  color: var(--orange);
+  flex-shrink: 0;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.inline-code {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 12px;
+  color: var(--cyan);
+}
+
+/* ─── DOWNLOAD ─── */
+#download { border-top: 1px solid var(--border); }
+
+.download-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 50px;
+}
+
+.dl-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 28px;
+  transition: border-color .2s, transform .2s;
+  position: relative;
+  overflow: hidden;
+}
+.dl-card:hover { border-color: var(--orange); transform: translateY(-3px); }
+.dl-card.featured {
+  border-color: var(--orange);
+  background: linear-gradient(135deg, rgba(245,138,31,.06), var(--bg2));
+}
+.dl-card.featured::before {
+  content: 'RECOMMENDED';
+  position: absolute;
+  top: 14px; right: 14px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--orange);
+  border: 1px solid var(--orange);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.dl-icon {
+  font-size: 28px;
+  margin-bottom: 14px;
+}
+
+.dl-name {
+  font-family: var(--font-head);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.dl-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.dl-cmd {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--green);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.dl-cmd .prompt { color: var(--muted2); user-select: none; }
+
+.dl-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.dl-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding: 10px 18px;
+  border-radius: var(--r);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  text-decoration: none;
+  transition: all .2s;
+}
+.dl-btn.primary { background: var(--orange); color: #000; }
+.dl-btn.primary:hover { background: var(--orange3); color: #000; }
+.dl-btn.secondary {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+.dl-btn.secondary:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ─── API REF ─── */
+#api { border-top: 1px solid var(--border); }
+
+.api-accordion { margin-top: 50px; }
+
+.api-item {
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.api-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg2);
+  cursor: pointer;
+  transition: background .15s;
+  gap: 12px;
+}
+.api-header:hover { background: var(--bg3); }
+
+.api-name {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.api-pkg  { font-size: 12px; color: var(--orange); margin-left: 10px; }
+.api-chevron {
+  color: var(--muted);
+  transition: transform .25s;
+  flex-shrink: 0;
+}
+.api-item.open .api-chevron { transform: rotate(180deg); }
+.api-item.open .api-header { background: var(--bg3); border-bottom: 1px solid var(--border); }
+
+.api-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .35s ease;
+  background: var(--bg);
+}
+.api-item.open .api-body { max-height: 1200px; }
+
+.api-methods { padding: 0 20px 16px; }
+
+.api-method {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.api-method:last-child { border-bottom: none; }
+
+.method-sig {
+  color: var(--cyan);
+  flex: 0 0 auto;
+  min-width: 240px;
+}
+.method-sig .fn-name { color: var(--orange); }
+.method-sig .ret     { color: var(--purple); }
+.method-desc { color: var(--muted); font-size: 13px; flex: 1; }
+
+/* ─── FOOTER ─── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 60px 24px;
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: gap;
+  gap: 24px;
+}
+
+.footer-brand {
+  font-family: var(--font-head);
+  font-size: 20px;
+  font-weight: 800;
+}
+.footer-brand span { color: var(--orange); }
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+  font-size: 13px;
+}
+.footer-links a { color: var(--muted); }
+.footer-links a:hover { color: var(--text); }
+
+.footer-copy {
+  font-size: 12px;
+  color: var(--muted2);
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .6s ease, transform .6s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 768px) {
+  nav { padding: 0 20px; }
+  .nav-links { display: none; }
+  .hero-stats { gap: 24px; }
+  .tutorial-layout { grid-template-columns: 1fr; }
+  .tutorial-nav { border-right: none; border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; padding: 0; }
+  .tut-step { flex-shrink: 0; }
+  footer { flex-direction: column; text-align: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">hx<span>javascript</span></div>
+  <ul class="nav-links">
+    <li><a href="#modules">Modules</a></li>
+    <li><a href="#tutorial">Tutorial</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#download">Download</a></li>
+  </ul>
+  <a class="nav-cta" href="https://github.com/Brenninho123/hxjavascript">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12Z"/></svg>
+    GitHub
+  </a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-badge">
+    <span class="dot"></span>
+    v1.0.0 · Apache 2.0 · Haxe 4.2+
+  </div>
+
+  <h1 class="hero-title">
+    <span class="hx">hx</span><span class="sep">×</span><span class="js">js</span>
+  </h1>
+
+  <p class="hero-sub">
+    Ergonomic <strong>Haxe ↔ JavaScript</strong> interop. Zero overhead wrappers for
+    eval, Workers, Fetch, Promises, Storage, ESM modules and build automation.
+  </p>
+
+  <div class="hero-actions">
+    <a class="btn-primary" href="#tutorial">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      Get Started
+    </a>
+    <a class="btn-ghost" href="#download">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Download
+    </a>
+    <a class="btn-ghost" href="https://github.com/Brenninho123/hxjavascript">
+      Source
+    </a>
+  </div>
+
+  <div class="hero-install">
+    <span class="prompt">$</span>
+    <span class="cmd">haxelib git hxjavascript https://github.com/Brenninho123/hxjavascript</span>
+    <button class="copy-btn" onclick="copyText(this, 'haxelib git hxjavascript https://github.com/Brenninho123/hxjavascript')">copy</button>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat"><span class="stat-n">7</span><span class="stat-l">Modules</span></div>
+    <div class="stat"><span class="stat-n">0</span><span class="stat-l">Dependencies</span></div>
+    <div class="stat"><span class="stat-n">JS</span><span class="stat-l">Only Target</span></div>
+    <div class="stat"><span class="stat-n">4.2+</span><span class="stat-l">Haxe</span></div>
+  </div>
+</div>
+
+<!-- MODULES -->
+<section id="modules">
+  <div class="reveal">
+    <div class="section-label">Library</div>
+    <h2 class="section-title">Everything you need<br>for JS interop</h2>
+    <p class="section-desc">Seven focused modules covering every pattern you'll encounter when bridging Haxe with the JS runtime.</p>
+  </div>
+
+  <div class="modules-grid reveal">
+    <div class="module-card">
+      <div class="mod-icon">⚡</div>
+      <div class="mod-name">JS</div>
+      <div class="mod-pkg">hxjavascript.JS</div>
+      <div class="mod-desc">Core runtime utilities. Execute arbitrary JS expressions, read and write globals, JSON serialization, and typeof checks — all compiled to inline zero-cost expressions.</div>
+      <div class="mod-tags"><span class="mod-tag">eval</span><span class="mod-tag">globals</span><span class="mod-tag">JSON</span><span class="mod-tag">inline</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">🧩</div>
+      <div class="mod-name">JSObject</div>
+      <div class="mod-pkg">hxjavascript.JSObject</div>
+      <div class="mod-desc">Typed wrapper over any dynamic JS object. Safe get/set/has/delete/call/keys operations without losing the underlying reference or breaking Haxe's type system.</div>
+      <div class="mod-tags"><span class="mod-tag">dynamic</span><span class="mod-tag">typed</span><span class="mod-tag">wrapper</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">🔀</div>
+      <div class="mod-name">Promise</div>
+      <div class="mod-pkg">hxjavascript.Promise</div>
+      <div class="mod-desc">Ergonomic Haxe wrapper over native JS Promises. Supports then, catchError, finally, all, race, resolve and reject — fully chainable without losing type context.</div>
+      <div class="mod-tags"><span class="mod-tag">async</span><span class="mod-tag">chain</span><span class="mod-tag">all/race</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">🌐</div>
+      <div class="mod-name">Fetch</div>
+      <div class="mod-pkg">hxjavascript.Fetch</div>
+      <div class="mod-desc">Full Fetch API wrapper with typed FetchResponse. First-class GET, POST, PUT, DELETE helpers plus a low-level request() for full control over method and headers.</div>
+      <div class="mod-tags"><span class="mod-tag">HTTP</span><span class="mod-tag">REST</span><span class="mod-tag">JSON</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">🗄️</div>
+      <div class="mod-name">Storage</div>
+      <div class="mod-pkg">hxjavascript.Storage</div>
+      <div class="mod-desc">localStorage and sessionStorage access with typed get/set, JSON object serialization, key enumeration and clear. Two named areas: Storage.local and Storage.session.</div>
+      <div class="mod-tags"><span class="mod-tag">localStorage</span><span class="mod-tag">session</span><span class="mod-tag">JSON</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">🔧</div>
+      <div class="mod-name">Worker</div>
+      <div class="mod-pkg">hxjavascript.Worker</div>
+      <div class="mod-desc">Web Workers made simple. Post typed messages, attach onMessage/onError/onMessageError callbacks, and terminate threads with a clean API that mirrors browser behaviour.</div>
+      <div class="mod-tags"><span class="mod-tag">threads</span><span class="mod-tag">postMessage</span><span class="mod-tag">transfer</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">📦</div>
+      <div class="mod-name">Require</div>
+      <div class="mod-pkg">hxjavascript.Require</div>
+      <div class="mod-desc">CommonJS require() and dynamic ESM import() wrapped for Haxe. Sync module loading for Node.js, async importModule() for modern browsers and ESM environments.</div>
+      <div class="mod-tags"><span class="mod-tag">CJS</span><span class="mod-tag">ESM</span><span class="mod-tag">Node.js</span></div>
+    </div>
+    <div class="module-card">
+      <div class="mod-icon">🏗️</div>
+      <div class="mod-name">JSMacro</div>
+      <div class="mod-pkg">hxjavascript.macro.JSMacro</div>
+      <div class="mod-desc">Compile-time build macro. Annotate static fields with @jsProperty and the macro auto-generates typed get/set accessors backed by untyped __js__ reads/writes at zero runtime cost.</div>
+      <div class="mod-tags"><span class="mod-tag">macro</span><span class="mod-tag">compile-time</span><span class="mod-tag">extern</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- TUTORIAL -->
+<section id="tutorial">
+  <div class="reveal">
+    <div class="section-label">Tutorial</div>
+    <h2 class="section-title">From zero to<br>JS interop in minutes</h2>
+    <p class="section-desc">A step-by-step walkthrough covering installation through advanced patterns. Follow each step in order.</p>
+  </div>
+
+  <div class="tutorial-layout reveal">
+    <nav class="tutorial-nav" id="tutNav">
+      <div class="tut-step active" onclick="goStep(0)">
+        <div class="tut-num">1</div>
+        <div class="tut-info"><div class="tut-title">Installation</div><div class="tut-sub">haxelib setup</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(1)">
+        <div class="tut-num">2</div>
+        <div class="tut-info"><div class="tut-title">First JS Call</div><div class="tut-sub">JS.eval + JS.run</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(2)">
+        <div class="tut-num">3</div>
+        <div class="tut-info"><div class="tut-title">Dynamic Objects</div><div class="tut-sub">JSObject wrapper</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(3)">
+        <div class="tut-num">4</div>
+        <div class="tut-info"><div class="tut-title">HTTP Requests</div><div class="tut-sub">Fetch + Promise</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(4)">
+        <div class="tut-num">5</div>
+        <div class="tut-info"><div class="tut-title">Web Workers</div><div class="tut-sub">Threads + messages</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(5)">
+        <div class="tut-num">6</div>
+        <div class="tut-info"><div class="tut-title">Storage</div><div class="tut-sub">Local + session</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(6)">
+        <div class="tut-num">7</div>
+        <div class="tut-info"><div class="tut-title">Macros</div><div class="tut-sub">@jsProperty externs</div></div>
+      </div>
+      <div class="tut-step" onclick="goStep(7)">
+        <div class="tut-num">8</div>
+        <div class="tut-info"><div class="tut-title">Build Pipeline</div><div class="tut-sub">Build.hx + Build.js</div></div>
+      </div>
+    </nav>
+
+    <div class="tutorial-content">
+
+      <!-- STEP 1 -->
+      <div class="tut-panel active" id="step0">
+        <h2>Installation</h2>
+        <p>hxjavascript has <strong>zero runtime dependencies</strong> and works on Haxe 4.2 and above. Choose an install method below.</p>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">shell — via git (recommended)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>haxelib git hxjavascript https://github.com/Brenninho123/hxjavascript</code></div>
+        </div>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">shell — via haxelib (once published)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>haxelib install hxjavascript</code></div>
+        </div>
+
+        <p>Add the library to your <span class="inline-code">build.hxml</span>:</p>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">hxml</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>-cp src
+-lib hxjavascript
+-js bin/app.js
+-main Main</code></div>
+        </div>
+
+        <div class="tut-note">
+          <span class="note-icon">⚠</span>
+          <div><strong>JS target only.</strong> Every module guards itself with <span class="inline-code">#if !js #error #end</span>. Attempting to compile for cpp, hl, neko or any non-JS target will produce a compile-time error.</div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-next" onclick="goStep(1)">Next: First JS Call →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="tut-panel" id="step1">
+        <h2>First JS Call</h2>
+        <p>The <strong>JS</strong> module provides direct runtime access to the JavaScript engine. All methods are <span class="inline-code">inline</span> and compile to zero-overhead native expressions.</p>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">haxe</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.JS;
+
+<span class="k">class</span> <span class="t">Main</span> {
+    <span class="k">static function</span> <span class="fn">main</span>() {
+        <span class="k">var</span> sum:<span class="t">Int</span> = JS.<span class="fn">eval</span>(<span class="s">"1 + 2 + 3"</span>);
+
+        JS.<span class="fn">run</span>(<span class="s">"document.title = 'Hello from Haxe'"</span>);
+
+        JS.<span class="fn">globalSet</span>(<span class="s">"myLib"</span>, { version: <span class="s">"1.0"</span> });
+        <span class="k">var</span> lib = JS.<span class="fn">globalGet</span>(<span class="s">"myLib"</span>);
+
+        <span class="k">var</span> t:<span class="t">String</span> = JS.<span class="fn">typeof</span>(<span class="n">42</span>);
+
+        <span class="k">var</span> json:<span class="t">String</span> = JS.<span class="fn">stringifyJSON</span>({ x: <span class="n">1</span>, y: [<span class="n">2</span>,<span class="n">3</span>] }, <span class="n">2</span>);
+    }
+}</code></div>
+        </div>
+
+        <div class="tut-note info">
+          <span class="note-icon">ℹ</span>
+          <div><strong>eval() and CSP.</strong> <span class="inline-code">JS.eval()</span> calls the browser's native eval. If your deployment uses a Content Security Policy that disallows eval, use <span class="inline-code">JS.run()</span> instead — it wraps the code in <span class="inline-code">new Function()</span> which may be permitted under a <span class="inline-code">unsafe-eval</span> or <span class="inline-code">wasm-unsafe-eval</span> directive.</div>
+        </div>
+
+        <ul class="step-list">
+          <li><span class="inline-code">JS.eval&lt;T&gt;(code)</span> — evaluates an expression and casts the result to T</li>
+          <li><span class="inline-code">JS.run(code)</span> — executes a statement, no return value, isolated scope</li>
+          <li><span class="inline-code">JS.globalGet / globalSet</span> — read/write window properties by name</li>
+          <li><span class="inline-code">JS.exists(name)</span> — checks if a global exists without throwing</li>
+          <li><span class="inline-code">JS.parseJSON / stringifyJSON</span> — typed JSON roundtrip</li>
+        </ul>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(0)">← Back</button>
+          <button class="btn-next" onclick="goStep(2)">Next: Dynamic Objects →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="tut-panel" id="step2">
+        <h2>Dynamic Objects</h2>
+        <p><strong>JSObject</strong> wraps any JS value in a typed interface. This avoids scattering <span class="inline-code">untyped</span> calls through your codebase while keeping Haxe's type checker happy.</p>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">haxe</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.JSObject;
+
+<span class="k">var</span> obj = JSObject.<span class="fn">from</span>({ name: <span class="s">"Haxe"</span>, version: <span class="n">4</span>, tags: [<span class="s">"typed"</span>, <span class="s">"cross"</span>] });
+
+obj.<span class="fn">get</span>(<span class="s">"name"</span>);
+obj.<span class="fn">set</span>(<span class="s">"version"</span>, <span class="n">5</span>);
+obj.<span class="fn">has</span>(<span class="s">"tags"</span>);
+obj.<span class="fn">delete</span>(<span class="s">"tags"</span>);
+obj.<span class="fn">keys</span>();
+obj.<span class="fn">values</span>();
+obj.<span class="fn">toJSON</span>(<span class="n">2</span>);
+
+<span class="k">var</span> arr = JSObject.<span class="fn">array</span>();
+arr.<span class="fn">call</span>(<span class="s">"push"</span>, [<span class="s">"a"</span>, <span class="s">"b"</span>]);
+arr.<span class="fn">get</span>(<span class="s">"length"</span>);
+
+<span class="k">var</span> raw:<span class="t">Dynamic</span> = obj.<span class="fn">unwrap</span>();</code></div>
+        </div>
+
+        <div class="tut-note success">
+          <span class="note-icon">✔</span>
+          <div><strong>call() pattern.</strong> Use <span class="inline-code">call(method, args)</span> to invoke any JS method on the wrapped object. It expands to <span class="inline-code">obj[method].apply(obj, args)</span> — preserving the correct <span class="inline-code">this</span> context.</div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(1)">← Back</button>
+          <button class="btn-next" onclick="goStep(3)">Next: HTTP Requests →</button>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="tut-panel" id="step3">
+        <h2>HTTP Requests</h2>
+        <p>The <strong>Fetch</strong> and <strong>Promise</strong> modules work together. Fetch returns a <span class="inline-code">Promise&lt;FetchResponse&gt;</span> which you chain to read the body.</p>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">haxe — GET request</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.Fetch;
+
+Fetch.<span class="fn">get</span>(<span class="s">"https://api.example.com/users/1"</span>)
+    .<span class="fn">then</span>(r -> {
+        <span class="k">var</span> status:<span class="t">Int</span> = r.status;
+        <span class="k">var</span> ok:<span class="t">Bool</span>  = r.ok;
+        <span class="k">return</span> r.<span class="fn">json</span>();
+    })
+    .<span class="fn">then</span>(data -> {
+        <span class="k">var</span> name:<span class="t">String</span> = data.name;
+    })
+    .<span class="fn">catchError</span>(e -> trace(e));</code></div>
+        </div>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">haxe — POST with JSON body</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>Fetch.<span class="fn">post</span>(
+    <span class="s">"https://api.example.com/users"</span>,
+    { name: <span class="s">"Brenninho"</span>, role: <span class="s">"dev"</span> },
+    { <span class="s">"Authorization"</span>: <span class="s">"Bearer TOKEN"</span> }
+)
+.<span class="fn">then</span>(r -> r.<span class="fn">json</span>())
+.<span class="fn">then</span>(data -> trace(data.id))
+.<span class="fn">catchError</span>(e -> trace(<span class="s">"Network error:"</span>, e));</code></div>
+        </div>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">haxe — Promise combinators</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.Promise;
+
+<span class="k">var</span> p1 = Fetch.<span class="fn">get</span>(<span class="s">"/api/a"</span>).<span class="fn">then</span>(r -> r.<span class="fn">json</span>());
+<span class="k">var</span> p2 = Fetch.<span class="fn">get</span>(<span class="s">"/api/b"</span>).<span class="fn">then</span>(r -> r.<span class="fn">json</span>());
+
+Promise.<span class="fn">all</span>([p1, p2])
+    .<span class="fn">then</span>(results -> {
+        <span class="k">var</span> a = results[<span class="n">0</span>];
+        <span class="k">var</span> b = results[<span class="n">1</span>];
+    })
+    .<span class="fn">finally</span>(() -> trace(<span class="s">"Done"</span>));</code></div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(2)">← Back</button>
+          <button class="btn-next" onclick="goStep(4)">Next: Web Workers →</button>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="tut-panel" id="step4">
+        <h2>Web Workers</h2>
+        <p>Use <strong>Worker</strong> to offload heavy computation to background threads. Messages are typed via the <span class="inline-code">JSObject</span> pattern.</p>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">haxe — main thread</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.Worker;
+
+<span class="k">var</span> w = <span class="k">new</span> <span class="t">Worker</span>(<span class="s">"bin/worker.js"</span>);
+
+w.<span class="fn">onMessage</span>(msg -> {
+    <span class="k">var</span> result:<span class="t">Int</span> = msg.data.result;
+    trace(<span class="s">"Worker result:"</span>, result);
+});
+
+w.<span class="fn">onError</span>(err -> {
+    trace(<span class="s">"Worker error:"</span>, err.message);
+});
+
+w.<span class="fn">post</span>({ action: <span class="s">"compute"</span>, value: <span class="n">1_000_000</span> });
+
+<span class="cm">// Transfer ArrayBuffer ownership (zero-copy)</span>
+<span class="k">var</span> buf = JS.<span class="fn">eval</span>(<span class="s">"new ArrayBuffer(1024)"</span>);
+w.<span class="fn">post</span>({ data: buf }, [buf]);
+
+w.<span class="fn">terminate</span>();</code></div>
+        </div>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">javascript — worker.js (browser-side)</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>self.onmessage = function(e) {
+    if (e.data.action === "compute") {
+        var n = e.data.value;
+        var sum = 0;
+        for (var i = 0; i < n; i++) sum += i;
+        self.postMessage({ result: sum });
+    }
+};</code></div>
+        </div>
+
+        <div class="tut-note info">
+          <span class="note-icon">ℹ</span>
+          <div><strong>ES Module workers.</strong> Pass <span class="inline-code">{ type: "module" }</span> as the second argument to use ESM syntax inside the worker: <span class="inline-code">new Worker("worker.js", { type: "module" })</span>.</div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(3)">← Back</button>
+          <button class="btn-next" onclick="goStep(5)">Next: Storage →</button>
+        </div>
+      </div>
+
+      <!-- STEP 6 -->
+      <div class="tut-panel" id="step5">
+        <h2>Storage</h2>
+        <p><strong>Storage.local</strong> and <strong>Storage.session</strong> give typed access to the Web Storage API. Both support string and JSON object persistence.</p>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">haxe — string values</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.Storage;
+
+Storage.local.<span class="fn">set</span>(<span class="s">"username"</span>, <span class="s">"Brenninho"</span>);
+<span class="k">var</span> name = Storage.local.<span class="fn">get</span>(<span class="s">"username"</span>);
+
+Storage.local.<span class="fn">remove</span>(<span class="s">"username"</span>);
+Storage.local.<span class="fn">clear</span>();
+
+<span class="k">var</span> keys:<span class="t">Array</span>&lt;<span class="t">String</span>&gt; = Storage.local.<span class="fn">keys</span>();
+<span class="k">var</span> len:<span class="t">Int</span>             = Storage.local.<span class="fn">length</span>();</code></div>
+        </div>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">haxe — JSON objects</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">typedef</span> <span class="t">Config</span> = { theme:<span class="t">String</span>, lang:<span class="t">String</span>, fontSize:<span class="t">Int</span> }
+
+Storage.local.<span class="fn">setObject</span>(<span class="s">"config"</span>, {
+    theme:    <span class="s">"dark"</span>,
+    lang:     <span class="s">"pt-BR"</span>,
+    fontSize: <span class="n">14</span>
+});
+
+<span class="k">var</span> cfg:<span class="t">Null</span>&lt;<span class="t">Config</span>&gt; = Storage.local.<span class="fn">getObject</span>(<span class="s">"config"</span>);
+<span class="k">if</span> (cfg != <span class="k">null</span>) {
+    <span class="k">var</span> theme:<span class="t">String</span> = cfg.theme;
+}
+
+Storage.session.<span class="fn">set</span>(<span class="s">"token"</span>, <span class="s">"eyJhbGci..."</span>);</code></div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(4)">← Back</button>
+          <button class="btn-next" onclick="goStep(6)">Next: Macros →</button>
+        </div>
+      </div>
+
+      <!-- STEP 7 -->
+      <div class="tut-panel" id="step6">
+        <h2>Compile-time Macros</h2>
+        <p>The <strong>JSMacro</strong> build macro auto-generates typed property accessors for fields annotated with <span class="inline-code">@jsProperty</span>. The result is zero-cost: no runtime object, just <span class="inline-code">untyped __js__</span> reads and writes.</p>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">haxe — extern class with @jsProperty</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code><span class="k">import</span> hxjavascript.macro.JSMacro;
+
+<span class="v">@:build</span>(<span class="fn">JSMacro.buildExtern</span>())
+<span class="k">class</span> <span class="t">MyLib</span> {
+    <span class="v">@jsProperty</span> <span class="k">public static var</span> version:<span class="t">String</span>;
+    <span class="v">@jsProperty</span> <span class="k">public static var</span> debug:<span class="t">Bool</span>;
+    <span class="v">@jsProperty</span> <span class="k">public static var</span> maxRetries:<span class="t">Int</span>;
+}
+
+<span class="k">class</span> <span class="t">Main</span> {
+    <span class="k">static function</span> <span class="fn">main</span>() {
+        <span class="k">var</span> v:<span class="t">String</span> = MyLib.version;
+        MyLib.debug      = <span class="k">true</span>;
+        MyLib.maxRetries = <span class="n">3</span>;
+    }
+}</code></div>
+        </div>
+
+        <div class="tut-note">
+          <span class="note-icon">⚠</span>
+          <div><strong>Macro target restriction.</strong> The macro itself compiles under <span class="inline-code">#if macro</span>. The generated accessors are <span class="inline-code">#if js</span> guarded, so the same extern class can live in a multi-target codebase — non-JS targets simply won't compile the field accessors.</div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(5)">← Back</button>
+          <button class="btn-next" onclick="goStep(7)">Next: Build Pipeline →</button>
+        </div>
+      </div>
+
+      <!-- STEP 8 -->
+      <div class="tut-panel" id="step7">
+        <h2>Build Pipeline</h2>
+        <p>hxjavascript ships a two-stage build system: <strong>Build.hx</strong> compiles and packages the Haxe side, <strong>Build.js</strong> post-processes the output into CJS, IIFE and ESM bundles.</p>
+
+        <div class="code-block" style="margin-bottom:16px">
+          <div class="code-header"><span class="code-lang">shell — common Build.hx tasks</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>haxe --run Build all            <span class="cm"># clean → compile → lint → test → package</span>
+haxe --run Build compile        <span class="cm"># compile only</span>
+haxe --run Build test           <span class="cm"># compile + run via node</span>
+haxe --run Build lint           <span class="cm"># static analysis (trace, comments, line length)</span>
+haxe --run Build watch          <span class="cm"># file watcher (polling)</span>
+haxe --run Build --release all  <span class="cm"># DCE full + ES6 target</span></code></div>
+        </div>
+
+        <div class="code-block" style="margin-bottom:20px">
+          <div class="code-header"><span class="code-lang">shell — common Build.js tasks</span><button class="copy-btn" onclick="copyCode(this)">copy</button></div>
+          <div class="code-body"><code>node Build.js all       <span class="cm"># full pipeline</span>
+node Build.js bundle    <span class="cm"># IIFE + CJS with banner</span>
+node Build.js minify    <span class="cm"># minify CJS output (+ terser if installed)</span>
+node Build.js esm       <span class="cm"># ES Module wrapper</span>
+node Build.js gzip      <span class="cm"># gzip all dist/ files at level 9</span>
+node Build.js analyze   <span class="cm"># size, class count, SHA-256 report</span>
+node Build.js manifest  <span class="cm"># generate dist/manifest.json</span></code></div>
+        </div>
+
+        <div class="tut-note success">
+          <span class="note-icon">✔</span>
+          <div><strong>Typical full release flow:</strong> <span class="inline-code">haxe --run Build --release all</span> followed by <span class="inline-code">node Build.js all</span>. The result is a versioned <span class="inline-code">dist/hxjavascript-1.0.0.zip</span> ready for haxelib publish, plus CJS/ESM/IIFE bundles with gzip variants and a signed manifest.</div>
+        </div>
+
+        <div class="tut-actions">
+          <button class="btn-prev" onclick="goStep(6)">← Back</button>
+          <button class="btn-next" onclick="goStep(0)" style="background:var(--green)">✔ Restart Tutorial</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- DOWNLOAD -->
+<section id="download">
+  <div class="reveal">
+    <div class="section-label">Download</div>
+    <h2 class="section-title">Get hxjavascript</h2>
+    <p class="section-desc">Multiple distribution formats. Pick what fits your workflow.</p>
+  </div>
+
+  <div class="download-grid reveal">
+    <div class="dl-card featured">
+      <div class="dl-icon">📦</div>
+      <div class="dl-name">haxelib (git)</div>
+      <div class="dl-meta">Always latest · Haxe 4.2+</div>
+      <div class="dl-cmd">
+        <span class="prompt">$</span>
+        <span>haxelib git hxjavascript https://github.com/Brenninho123/hxjavascript</span>
+        <button class="copy-btn" onclick="copyText(this, 'haxelib git hxjavascript https://github.com/Brenninho123/hxjavascript')">copy</button>
+      </div>
+      <div class="dl-desc">Installs directly from the GitHub repository. Automatically tracked in your project's haxelib dependencies.</div>
+      <a class="dl-btn primary" href="https://github.com/Brenninho123/hxjavascript">View on GitHub ↗</a>
+    </div>
+
+    <div class="dl-card">
+      <div class="dl-icon">🗜️</div>
+      <div class="dl-name">ZIP Archive</div>
+      <div class="dl-meta">v1.0.0 · Source + dist</div>
+      <div class="dl-cmd">
+        <span class="prompt">dist/</span>
+        <span>hxjavascript-1.0.0.zip</span>
+        <button class="copy-btn" onclick="copyText(this, 'https://github.com/Brenninho123/hxjavascript/archive/refs/heads/main.zip')">copy url</button>
+      </div>
+      <div class="dl-desc">Full source archive including all modules, Build.hx, Build.js, haxelib.json and README. Run <code style="color:var(--cyan);font-size:12px">haxelib run Build all</code> after extracting.</div>
+      <a class="dl-btn secondary" href="https://github.com/Brenninho123/hxjavascript/archive/refs/heads/main.zip">Download ZIP</a>
+    </div>
+
+    <div class="dl-card">
+      <div class="dl-icon">🐙</div>
+      <div class="dl-name">Clone via Git</div>
+      <div class="dl-meta">Full history · develop branch</div>
+      <div class="dl-cmd">
+        <span class="prompt">$</span>
+        <span>git clone https://github.com/Brenninho123/hxjavascript</span>
+        <button class="copy-btn" onclick="copyText(this, 'git clone https://github.com/Brenninho123/hxjavascript')">copy</button>
+      </div>
+      <div class="dl-desc">Clone the full repository. Use <span class="inline-code">haxelib dev hxjavascript .</span> inside the cloned directory to use a local dev version in your projects.</div>
+      <a class="dl-btn secondary" href="https://github.com/Brenninho123/hxjavascript">Open Repository</a>
+    </div>
+  </div>
+</section>
+
+<!-- API -->
+<section id="api">
+  <div class="reveal">
+    <div class="section-label">Reference</div>
+    <h2 class="section-title">API Reference</h2>
+    <p class="section-desc">Quick signatures for every public method. Click a module to expand.</p>
+  </div>
+
+  <div class="api-accordion reveal">
+
+    <div class="api-item" onclick="toggleApi(this)">
+      <div class="api-header">
+        <div><span class="api-name">JS</span><span class="api-pkg">hxjavascript.JS</span></div>
+        <svg class="api-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="api-body"><div class="api-methods">
+        <div class="api-method"><span class="method-sig"><span class="fn-name">eval</span>&lt;T&gt;(code:<span class="ret">String</span>):<span class="ret">T</span></span><span class="method-desc">Evaluates a JS expression. Internally calls eval().</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">run</span>(code:<span class="ret">String</span>):<span class="ret">Void</span></span><span class="method-desc">Executes a JS statement via new Function(). No return value.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">typeof</span>(value:<span class="ret">Dynamic</span>):<span class="ret">String</span></span><span class="method-desc">Returns JS typeof string: "number", "string", "object", etc.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">exists</span>(name:<span class="ret">String</span>):<span class="ret">Bool</span></span><span class="method-desc">Returns true if window[name] !== undefined.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">globalGet</span>&lt;T&gt;(name:<span class="ret">String</span>):<span class="ret">T</span></span><span class="method-desc">Reads a property from the global window object.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">globalSet</span>(name:<span class="ret">String</span>, value:<span class="ret">Dynamic</span>):<span class="ret">Void</span></span><span class="method-desc">Writes a property to the global window object.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">parseJSON</span>(json:<span class="ret">String</span>):<span class="ret">Dynamic</span></span><span class="method-desc">Wraps JSON.parse(). Returns a dynamic object.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">stringifyJSON</span>(value:<span class="ret">Dynamic</span>, ?indent:<span class="ret">Int</span>):<span class="ret">String</span></span><span class="method-desc">Wraps JSON.stringify() with optional indentation.</span></div>
+      </div></div>
+    </div>
+
+    <div class="api-item" onclick="toggleApi(this)">
+      <div class="api-header">
+        <div><span class="api-name">JSObject</span><span class="api-pkg">hxjavascript.JSObject</span></div>
+        <svg class="api-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="api-body"><div class="api-methods">
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">from</span>(obj:<span class="ret">Dynamic</span>):<span class="ret">JSObject</span></span><span class="method-desc">Wraps any existing JS value.</span></div>
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">empty</span>():<span class="ret">JSObject</span></span><span class="method-desc">Creates a new empty JS object {}.</span></div>
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">array</span>():<span class="ret">JSObject</span></span><span class="method-desc">Creates a new empty JS array [].</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">get</span>&lt;T&gt;(key:<span class="ret">String</span>):<span class="ret">T</span></span><span class="method-desc">Property read by name.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">set</span>(key:<span class="ret">String</span>, value:<span class="ret">Dynamic</span>):<span class="ret">Void</span></span><span class="method-desc">Property write by name.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">has</span>(key:<span class="ret">String</span>):<span class="ret">Bool</span></span><span class="method-desc">hasOwnProperty check.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">delete</span>(key:<span class="ret">String</span>):<span class="ret">Bool</span></span><span class="method-desc">Deletes property, returns delete result.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">call</span>&lt;T&gt;(method:<span class="ret">String</span>, args:<span class="ret">Array&lt;Dynamic&gt;</span>):<span class="ret">T</span></span><span class="method-desc">Calls obj[method].apply(obj, args).</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">keys</span>():<span class="ret">Array&lt;String&gt;</span></span><span class="method-desc">Object.keys() of own enumerable properties.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">values</span>():<span class="ret">Array&lt;Dynamic&gt;</span></span><span class="method-desc">Object.values() of own enumerable properties.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">toJSON</span>(?indent:<span class="ret">Int</span>):<span class="ret">String</span></span><span class="method-desc">JSON.stringify with optional indent.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">unwrap</span>():<span class="ret">Dynamic</span></span><span class="method-desc">Returns the raw underlying JS reference.</span></div>
+      </div></div>
+    </div>
+
+    <div class="api-item" onclick="toggleApi(this)">
+      <div class="api-header">
+        <div><span class="api-name">Fetch</span><span class="api-pkg">hxjavascript.Fetch</span></div>
+        <svg class="api-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="api-body"><div class="api-methods">
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">get</span>(url, ?headers):<span class="ret">Promise</span></span><span class="method-desc">HTTP GET. Resolves to FetchResponse.</span></div>
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">post</span>(url, ?body, ?headers):<span class="ret">Promise</span></span><span class="method-desc">HTTP POST with auto JSON serialization.</span></div>
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">put</span>(url, ?body, ?headers):<span class="ret">Promise</span></span><span class="method-desc">HTTP PUT.</span></div>
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">delete</span>(url, ?headers):<span class="ret">Promise</span></span><span class="method-desc">HTTP DELETE.</span></div>
+        <div class="api-method"><span class="method-sig">static <span class="fn-name">request</span>(url, method, ?body, ?headers):<span class="ret">Promise</span></span><span class="method-desc">Low-level entry point. Full control over method.</span></div>
+        <div class="api-method"><span class="method-sig">FetchResponse.<span class="fn-name">json</span>():<span class="ret">Promise</span></span><span class="method-desc">Reads and parses the response body as JSON.</span></div>
+        <div class="api-method"><span class="method-sig">FetchResponse.<span class="fn-name">text</span>():<span class="ret">Promise</span></span><span class="method-desc">Reads the response body as a plain string.</span></div>
+      </div></div>
+    </div>
+
+    <div class="api-item" onclick="toggleApi(this)">
+      <div class="api-header">
+        <div><span class="api-name">Worker</span><span class="api-pkg">hxjavascript.Worker</span></div>
+        <svg class="api-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="api-body"><div class="api-methods">
+        <div class="api-method"><span class="method-sig"><span class="fn-name">new</span>(url:<span class="ret">String</span>, ?options:<span class="ret">Dynamic</span>)</span><span class="method-desc">Creates a new Worker from the given script URL.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">post</span>(data:<span class="ret">Dynamic</span>, ?transfer:<span class="ret">Array&lt;Dynamic&gt;</span>):<span class="ret">Void</span></span><span class="method-desc">Sends a message. Optional Transferable array.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">onMessage</span>(cb:<span class="ret">Dynamic -&gt; Void</span>):<span class="ret">Void</span></span><span class="method-desc">Registers the message handler.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">onError</span>(cb:<span class="ret">Dynamic -&gt; Void</span>):<span class="ret">Void</span></span><span class="method-desc">Registers the error handler.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">onMessageError</span>(cb:<span class="ret">Dynamic -&gt; Void</span>):<span class="ret">Void</span></span><span class="method-desc">Fires when a message cannot be deserialized.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">terminate</span>():<span class="ret">Void</span></span><span class="method-desc">Immediately terminates the worker thread.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">unwrap</span>():<span class="ret">Dynamic</span></span><span class="method-desc">Returns the raw JS Worker object.</span></div>
+      </div></div>
+    </div>
+
+    <div class="api-item" onclick="toggleApi(this)">
+      <div class="api-header">
+        <div><span class="api-name">Storage</span><span class="api-pkg">hxjavascript.Storage</span></div>
+        <svg class="api-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+      <div class="api-body"><div class="api-methods">
+        <div class="api-method"><span class="method-sig">Storage.<span class="fn-name">local</span> / Storage.<span class="fn-name">session</span>:<span class="ret">StorageArea</span></span><span class="method-desc">Access localStorage and sessionStorage areas.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">set</span>(key, value:<span class="ret">String</span>):<span class="ret">Void</span></span><span class="method-desc">Stores a string value.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">get</span>(key):<span class="ret">Null&lt;String&gt;</span></span><span class="method-desc">Retrieves a string, or null if absent.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">setObject</span>(key, value:<span class="ret">Dynamic</span>):<span class="ret">Void</span></span><span class="method-desc">Serializes and stores an object as JSON.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">getObject</span>&lt;T&gt;(key):<span class="ret">Null&lt;T&gt;</span></span><span class="method-desc">Parses and returns a stored JSON object.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">remove</span>(key):<span class="ret">Void</span></span><span class="method-desc">Removes a single entry.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">clear</span>():<span class="ret">Void</span></span><span class="method-desc">Removes all entries in the area.</span></div>
+        <div class="api-method"><span class="method-sig"><span class="fn-name">keys</span>():<span class="ret">Array&lt;String&gt;</span></span><span class="method-desc">Returns all stored keys.</span></div>
+      </div></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">hx<span>javascript</span></div>
+  <ul class="footer-links">
+    <li><a href="https://github.com/Brenninho123/hxjavascript">GitHub</a></li>
+    <li><a href="#tutorial">Tutorial</a></li>
+    <li><a href="#api">API</a></li>
+    <li><a href="#download">Download</a></li>
+    <li><a href="https://haxe.org">Haxe.org</a></li>
+  </ul>
+  <div class="footer-copy">Apache 2.0 · Built by Brenninho123</div>
+</footer>
+
+<script>
+function goStep(n) {
+    const steps   = document.querySelectorAll(".tut-step");
+    const panels  = document.querySelectorAll(".tut-panel");
+    const current = document.querySelector(".tut-step.active");
+    if (current) {
+        const idx = [...steps].indexOf(current);
+        if (idx < n) current.classList.add("done");
+        current.classList.remove("active");
+    }
+    document.querySelectorAll(".tut-panel.active").forEach(p => p.classList.remove("active"));
+
+    steps[n]?.classList.add("active");
+    steps[n]?.classList.remove("done");
+    document.getElementById("step" + n)?.classList.add("active");
+
+    const content = document.querySelector(".tutorial-content");
+    if (content) content.scrollTop = 0;
+}
+
+function toggleApi(item) {
+    const isOpen = item.classList.contains("open");
+    document.querySelectorAll(".api-item.open").forEach(i => i.classList.remove("open"));
+    if (!isOpen) item.classList.add("open");
+}
+
+function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = "copied!";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1800);
+    });
+}
+
+function copyCode(btn) {
+    const block = btn.closest(".code-block");
+    const code  = block?.querySelector("code");
+    if (!code) return;
+    const text = code.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+        const orig = btn.textContent;
+        btn.textContent = "copied!";
+        btn.classList.add("copied");
+        setTimeout(() => { btn.textContent = orig; btn.classList.remove("copied"); }, 1800);
+    });
+}
+
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
+}, { threshold: 0.08 });
+document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener("click", e => {
+        const t = document.querySelector(a.getAttribute("href"));
+        if (t) { e.preventDefault(); t.scrollIntoView({ behavior: "smooth" }); }
+    });
+});
+</script>
+</body>
+</html>
